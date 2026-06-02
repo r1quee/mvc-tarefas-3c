@@ -6,18 +6,18 @@ const pool = mysql.createPool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
     port: process.env.DB_PORT,
-    waitForConnections:true,
-    connectionLimit:4,
-    queueLimit:0
+    waitForConnections: true,
+    connectionLimit: 4,
+    queueLimit: 0
 });
 
-
-pool.getConnection((err, conn)=>{
-    if(err){
-        console.log(err);
-    }else{
-        console.log("Conectado ao SGBD!");
-    }    
-})
+pool.getConnection((err, conn) => {
+    if (err) {
+        console.error("Falha ao conectar ao banco:", err.message);
+    } else {
+        console.log("Conexão com o banco estabelecida.");
+        conn.release();
+    }
+});
 
 module.exports = pool.promise();

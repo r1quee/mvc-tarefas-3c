@@ -1,93 +1,96 @@
-// requisitar o pool de conexões
 const pool = require("../../config/pool_conexoes");
-// criar um objeto com funções de acesso ao SGBD
+
 const tarefasModel = {
 
-    //select itens ativos
-    // incluir paramatros offset e qtde 
-    findAll: async (offset = null, qtde = null) => {
+    findAll: async (inicio = null, limite = null) => {
         try {
-            if(offset != null && qtde != null){
-                var [linhas] = await pool.query("select * from tarefas where status_tarefa = 1 limit ?,? ",[offset, qtde]);
-            }else{
-                var [linhas] = await pool.query("select * from tarefas where status_tarefa = 1");
+            let rows;
+            if (inicio !== null && limite !== null) {
+                [rows] = await pool.query(
+                    "SELECT * FROM tarefas WHERE status_tarefa = 1 LIMIT ?, ?",
+                    [inicio, limite]
+                );
+            } else {
+                [rows] = await pool.query(
+                    "SELECT * FROM tarefas WHERE status_tarefa = 1"
+                );
             }
-            
-            return linhas;
-        } catch (erro) {
-            return erro;
+            return rows;
+        } catch (err) {
+            return err;
         }
     },
-    //select por id específico
+
     findById: async (id) => {
         try {
-            const [linhas] = await pool.query(
-                "select * from tarefas where status_tarefa = 1 and id_tarefa = ?",
-                [id]);
-            return linhas;
-        } catch (erro) {
-            return erro;
+            const [rows] = await pool.query(
+                "SELECT * FROM tarefas WHERE status_tarefa = 1 AND id_tarefa = ?",
+                [id]
+            );
+            return rows;
+        } catch (err) {
+            return err;
         }
     },
-    //insert
+
     create: async (dados) => {
-        /*
-        dados json no formato:
-            {
-            nome: "nome",
-            prazo:"data mysql",
-            situacao:"cod situacao"
-            }
-        */
         try {
-            const [resultInsert] = await pool.query(
-                "insert into tarefas(`nome_tarefa`,`prazo_tarefa`, " +
-                "`situacao_tarefa`) values(?,?,?)",
-                [dados.nome, dados.prazo, dados.situacao]);
-            return resultInsert;
-        } catch (erro) {
-            return erro;
+            const [resultado] = await pool.query(
+                "INSERT INTO tarefas (nome_tarefa, prazo_tarefa, situacao_tarefa) VALUES (?, ?, ?)",
+                [dados.nome, dados.prazo, dados.situacao]
+            );
+            return resultado;
+        } catch (err) {
+            return err;
         }
-
     },
 
-    // update :
     update: async (dados) => {
-        /*
-        dados json no formato:
-            {
-            id: 3
-            nome: "nome",
-            prazo:"data mysql",
-            situacao:"cod situacao"
-            }
-        */
         try {
-            const [resulUpdate] = await pool.query(
-                "update tarefas set `nome_tarefa`= ?,`prazo_tarefa`= ?,  " +
-                "`situacao_tarefa`= ? where id_tarefa = ?",
-                [dados.nome, dados.prazo, dados.situacao, dados.id]);
-            return resulUpdate;
-        } catch (erro) {
-            return erro;
+            const [resultado] = await pool.query(
+                "UPDATE tarefas SET nome_tarefa = ?, prazo_tarefa = ?, situacao_tarefa = ? WHERE id_tarefa = ?",
+                [dados.nome, dados.prazo, dados.situacao, dados.id]
+            );
+            return resultado;
+        } catch (err) {
+            return err;
         }
     },
 
-    // deleteLogico :
-    // deleteFisico :
-
-    totRegistros: async ()=>{
-        try{
-            const [linhas] = await pool.query("SELECT count(*) as total FROM `lista-tarefas`.tarefas");
-            return linhas[0].total;
-        }catch(erro){
-            return erro;
+    deleteLogico: async (id) => {
+        try {
+            const [resultado] = await pool.query(
+                "UPDATE tarefas SET status_tarefa = 0 WHERE id_tarefa = ?",
+                [id]
+            );
+            return resultado;
+        } catch (err) {
+            return err;
         }
+    },
 
+    deleteFisico: async (id) => {
+        try {
+            const [resultado] = await pool.query(
+                "DELETE FROM tarefas WHERE id_tarefa = ?",
+                [id]
+            );
+            return resultado;
+        } catch (err) {
+            return err;
+        }
+    },
+
+    totRegistros: async () => {
+        try {
+            const [rows] = await pool.query(
+                "SELECT COUNT(*) AS total FROM tarefas WHERE status_tarefa = 1"
+            );
+            return rows[0].total;
+        } catch (err) {
+            return err;
+        }
     }
-}
+};
 
-
-//exportar este objeto como um módulo js
-module.exports = { tarefasModel }
-// uso de chave torna obrigatório o uso do nome indicado
+module.exports = { tarefasModel };
